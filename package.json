@@ -1,6 +1,7 @@
 {
   "name": "nextjs",
   "version": "0.1.0",
+  "homepage": "https://thymezu.github.io/thymezy.github.io",
   "private": true,
   "engines": {
     "npm": ">=10.2.0",
@@ -10,7 +11,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d out -r git@github.com:thymezy/thymezy.github.io.git"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -71,5 +75,8 @@
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
