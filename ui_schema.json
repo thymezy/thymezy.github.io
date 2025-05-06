@@ -8,100 +8,134 @@
     ]
   },
 
+  /* ========= DATA SOURCES ========= */
+  "dataSources": {
+    /* initial payload with everything */
+    "indexPayload": { "endpoint": "/prod/index" },
+
+    /* derived collections */
+    "authors": {
+      "expression": "{{ Object.keys(indexPayload) }}"
+    },
+
+    "authorMeta": {
+      "expression": "{{ indexPayload }}"
+    },
+
+    "assetsForSelected": {
+      "expression": "{{ selectedAuthors.flatMap(a => Object.keys(authorMeta[a].assets || {})) }}"
+    },
+
+    "authorContent": {
+      "endpoint": "/api/authors/content",
+      "params": {
+        "authorIds":      "{{ selectedAuthors }}",
+        "assets":         "{{ selectedAssets }}",
+        "analysisTypes":  "{{ selectedAnalysisTypes }}"
+      }
+    }
+  },
+
+  /* ========= COMPONENTS ========= */
   "components": [
-    /* ---------- LEFT‑PANE (two dynamic columns) ---------- */
+    /* ---------- LEFT‑PANE (any number of 280‑px columns) ---------- */
     {
-      "id": "leftPaneLayout",
+      "id": "leftPaneGrid",
       "area": "leftPane",
       "type": "layout",
       "layout": {
-        "type": "split",
-        "direction": "horizontal",
-        "areas": [
-          { "name": "authorsCol", "width": "280px" },
-          { "name": "assetsCol",  "width": "280px" }
-        ]
+        "type": "grid",
+        "columnWidth": "280px",
+        "autoFlow": "column"
       }
     },
 
-    /* Authors column */
+    /* Column 1 : authors */
     {
-      "id": "authorList",
-      "area": "authorsCol",
-      "type": "list",
+      "id": "authorsColumn",
+      "area": "leftPaneGrid",
+      "type": "container",
       "header": "Authors",
-      "selection": { "mode": "multiple", "bind": "selectedAuthors" },
-      "item": {
-        "type": "card",
-        "fields": [
-          { "model": "name",       "role": "title" },
-          { "model": "language",   "options": ["chinese", "english"] },
-          { "model": "style",      "options": ["technical_analysis"] },
-          { "model": "ref_type",   "options": ["youtube", "medium"] },
-          { "model": "frequency" },
-          { "model": "format" },
-          { "model": "autoPublish" }
-        ],
-        "actions": [
-          {
-            "icon": "settings",
-            "action": "openConfigDialog",
-            "payload": {
-              "fields": [
-                {
-                  "model": "long_term",
-                  "type": "slider",
-                  "range": { "min": 1, "max": 365 },
-                  "unitField": "long_term_unit",
-                  "unitOptions": ["day", "week", "month", "quarter", "year"]
-                },
-                {
-                  "model": "mid_term",
-                  "type": "slider",
-                  "range": { "min": 1, "max": 365 },
-                  "unitField": "mid_term_unit",
-                  "unitOptions": ["day", "week", "month", "quarter", "year"]
-                },
-                {
-                  "model": "short_term",
-                  "type": "slider",
-                  "range": { "min": 1, "max": 365 },
-                  "unitField": "short_term_unit",
-                  "unitOptions": ["day", "week", "month", "quarter", "year"]
-                },
-                {
-                  "model": "ultra_short_term",
-                  "type": "slider",
-                  "range": { "min": 1, "max": 365 },
-                  "unitField": "ultra_short_term_unit",
-                  "unitOptions": ["day", "week", "month", "quarter", "year"]
+      "components": [
+        {
+          "id": "authorList",
+          "type": "list",
+          "selection": { "mode": "multiple", "bind": "selectedAuthors" },
+          "item": {
+            "type": "card",
+            "fields": [
+              /* static attributes shown as key‑value labels */
+              { "model": "name",     "role": "title" },
+              { "model": "language", "enum": ["chinese", "english"] },
+              { "model": "style",    "enum": ["technical_analysis"] },
+              { "model": "ref_type", "enum": ["youtube", "medium"] }
+            ],
+            "actions": [
+              {
+                "icon": "settings",
+                "action": "openConfigDialog",
+                "payload": {
+                  "fields": [
+                    {
+                      "model": "long_term",
+                      "type": "slider",
+                      "range": { "min": 1, "max": 365 },
+                      "unitField": "long_term_unit",
+                      "unitEnum": ["day", "week", "month", "quarter", "year"]
+                    },
+                    {
+                      "model": "mid_term",
+                      "type": "slider",
+                      "range": { "min": 1, "max": 365 },
+                      "unitField": "mid_term_unit",
+                      "unitEnum": ["day", "week", "month", "quarter", "year"]
+                    },
+                    {
+                      "model": "short_term",
+                      "type": "slider",
+                      "range": { "min": 1, "max": 365 },
+                      "unitField": "short_term_unit",
+                      "unitEnum": ["day", "week", "month", "quarter", "year"]
+                    },
+                    {
+                      "model": "ultra_short_term",
+                      "type": "slider",
+                      "range": { "min": 1, "max": 365 },
+                      "unitField": "ultra_short_term_unit",
+                      "unitEnum": ["day", "week", "month", "quarter", "year"]
+                    }
+                  ]
                 }
-              ]
-            }
-          }
-        ]
-      },
-      "dataSource": "authors"
+              }
+            ]
+          },
+          "dataSource": "authors"
+        }
+      ]
     },
 
-    /* Assets column */
+    /* Column 2 : assets (derived list, card style compact) */
     {
-      "id": "assetList",
-      "area": "assetsCol",
-      "type": "list",
+      "id": "assetsColumn",
+      "area": "leftPaneGrid",
+      "type": "container",
       "header": "Assets",
-      "selection": { "mode": "multiple", "bind": "selectedAssets" },
-      "item": {
-        "type": "card",
-        "style": "compact",
-        "model": "assetName"
-      },
-      "dataSource": {
-        "expression": "{{authors | filter(a => selectedAuthors.includes(a.id)) | flatMap('assets')}}"
-      }
+      "components": [
+        {
+          "id": "assetList",
+          "type": "list",
+          "selection": { "mode": "multiple", "bind": "selectedAssets" },
+          "item": {
+            "type": "card",
+            "style": "compact",
+            "model": "value"            /* asset name string */
+          },
+          "dataSource": "assetsForSelected"
+        }
+      ]
     },
 
-    /* Process button */
+    /* Process button in left pane bottom */
     {
       "id": "processBtn",
       "area": "leftPane",
@@ -138,7 +172,7 @@
       ]
     },
 
-    /* Content display panel */
+    /* Content display */
     {
       "id": "contentPanel",
       "area": "mainPane",
@@ -159,17 +193,5 @@
         }
       }
     }
-  ],
-
-  "dataSources": {
-    "authors":        { "endpoint": "/api/authors" },
-    "authorContent":  {
-      "endpoint": "/api/authors/content",
-      "params": {
-        "authorIds": "{{selectedAuthors}}",
-        "assets":    "{{selectedAssets}}",
-        "analysisTypes": "{{selectedAnalysisTypes}}"
-      }
-    }
-  }
+  ]
 }
