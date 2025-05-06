@@ -5,8 +5,13 @@
     "areas": [
       {
         "name": "leftPane",
-        "minWidth": "240px",
-        "resizable": true
+        "minWidth": "150px",
+        "resizable": true,
+        "scroll": { "direction": "horizontal", "enabled": true },
+        "columns": [
+          { "name": "authors", "minWidth": "300px", "initialWidth": "300px" },
+          { "name": "assets",  "minWidth": "200px", "initialWidth": "200px", "visible": "partial" }
+        ]
       },
       { "name": "mainPane", "flex": 1 }
     ]
