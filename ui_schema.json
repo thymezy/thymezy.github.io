@@ -1,0 +1,64 @@
+{
+  "layout": {
+    "type": "split",
+    "direction": "horizontal",
+    "areas": [
+      { "name": "sidebar", "width": "280px" },
+      { "name": "main",    "flex": 1 }
+    ]
+  },
+
+  "components": [
+    {
+      "id": "authorList",
+      "area": "sidebar",
+      "type": "list",
+      "selection": { "mode": "multiple", "bind": "selectedAuthors" },
+      "item": {
+        "type": "card",
+        "fields": [
+          { "model": "name",         "role": "title" },
+          { "label": "Frequency",    "model": "frequency" },
+          { "label": "Format",       "model": "format" },
+          { "label": "Auto‑publish", "model": "autoPublish" }
+        ],
+        "actions": [
+          { "icon": "settings", "action": "openAuthorSettings" }
+        ]
+      },
+      "dataSource": "authors"
+    },
+
+    {
+      "id": "processBtn",
+      "area": "sidebar",
+      "type": "button",
+      "label": "Process Selected",
+      "text": "Process Selected ({{selectedAuthors.length}})",
+      "disabled": "{{selectedAuthors.length === 0}}",
+      "action": "processSelectedAuthors"
+    },
+
+    {
+      "id": "contentPanel",
+      "area": "main",
+      "type": "panel",
+      "header": "Content Display",
+      "emptyState": {
+        "type": "text",
+        "value": "Select authors from the left panel to view their content",
+        "visible": "{{selectedAuthors.length === 0}}"
+      },
+      "body": {
+        "type": "dynamicContent",
+        "dataSource": "authorContent",
+        "visible": "{{selectedAuthors.length > 0}}"
+      }
+    }
+  ],
+
+  "dataSources": {
+    "authors":        { "endpoint": "/api/authors" },
+    "authorContent":  { "endpoint": "/api/authors/content", "params": { "ids": "{{selectedAuthors}}" } }
+  }
+}
