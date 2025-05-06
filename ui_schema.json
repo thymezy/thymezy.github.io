@@ -3,141 +3,134 @@
     "type": "split",
     "direction": "horizontal",
     "areas": [
-      { "name": "leftPane", "width": "560px" },
+      {
+        "name": "leftPane",
+        "minWidth": "240px",
+        "resizable": true        /* user can drag to resize */
+      },
       { "name": "mainPane", "flex": 1 }
     ]
   },
 
-  /* ========= DATA SOURCES ========= */
   "dataSources": {
-    /* initial payload with everything */
     "indexPayload": { "endpoint": "/prod/index" },
-
-    /* derived collections */
-    "authors": {
-      "expression": "{{ Object.keys(indexPayload) }}"
-    },
-
-    "authorMeta": {
-      "expression": "{{ indexPayload }}"
-    },
-
+    "authors":      { "expression": "{{ Object.keys(indexPayload) }}" },
+    "authorMeta":   { "expression": "{{ indexPayload }}" },
     "assetsForSelected": {
       "expression": "{{ selectedAuthors.flatMap(a => Object.keys(authorMeta[a].assets || {})) }}"
     },
-
     "authorContent": {
       "endpoint": "/api/authors/content",
       "params": {
-        "authorIds":      "{{ selectedAuthors }}",
-        "assets":         "{{ selectedAssets }}",
-        "analysisTypes":  "{{ selectedAnalysisTypes }}"
+        "authorIds":     "{{ selectedAuthors }}",
+        "assets":        "{{ selectedAssets }}",
+        "analysisTypes": "{{ selectedAnalysisTypes }}"
       }
     }
   },
 
-  /* ========= COMPONENTS ========= */
   "components": [
-    /* ---------- LEFT‑PANE (any number of 280‑px columns) ---------- */
+    /* ---------- LEFT PANE : horizontal carousel of columns ---------- */
     {
-      "id": "leftPaneGrid",
       "area": "leftPane",
-      "type": "layout",
-      "layout": {
-        "type": "grid",
-        "columnWidth": "280px",
-        "autoFlow": "column"
-      }
-    },
-
-    /* Column 1 : authors */
-    {
-      "id": "authorsColumn",
-      "area": "leftPaneGrid",
-      "type": "container",
-      "header": "Authors",
+      "type": "carousel",
+      "direction": "horizontal",
+      "autoScroll": false,
       "components": [
+        /* authors column (first frame) */
         {
-          "id": "authorList",
-          "type": "list",
-          "selection": { "mode": "multiple", "bind": "selectedAuthors" },
-          "item": {
-            "type": "card",
-            "fields": [
-              /* static attributes shown as key‑value labels */
-              { "model": "name",     "role": "title" },
-              { "model": "language", "enum": ["chinese", "english"] },
-              { "model": "style",    "enum": ["technical_analysis"] },
-              { "model": "ref_type", "enum": ["youtube", "medium"] }
-            ],
-            "actions": [
-              {
-                "icon": "settings",
-                "action": "openConfigDialog",
-                "payload": {
-                  "fields": [
-                    {
-                      "model": "long_term",
-                      "type": "slider",
-                      "range": { "min": 1, "max": 365 },
-                      "unitField": "long_term_unit",
-                      "unitEnum": ["day", "week", "month", "quarter", "year"]
-                    },
-                    {
-                      "model": "mid_term",
-                      "type": "slider",
-                      "range": { "min": 1, "max": 365 },
-                      "unitField": "mid_term_unit",
-                      "unitEnum": ["day", "week", "month", "quarter", "year"]
-                    },
-                    {
-                      "model": "short_term",
-                      "type": "slider",
-                      "range": { "min": 1, "max": 365 },
-                      "unitField": "short_term_unit",
-                      "unitEnum": ["day", "week", "month", "quarter", "year"]
-                    },
-                    {
-                      "model": "ultra_short_term",
-                      "type": "slider",
-                      "range": { "min": 1, "max": 365 },
-                      "unitField": "ultra_short_term_unit",
-                      "unitEnum": ["day", "week", "month", "quarter", "year"]
+          "type": "container",
+          "header": "Authors",
+          "components": [
+            {
+              "id": "authorList",
+              "type": "list",
+              "orientation": "vertical",
+              "selection": { "mode": "multiple", "bind": "selectedAuthors", "highlight": true },
+              "item": {
+                "type": "card",
+                "highlightOnSelect": true,
+                "fields": [
+                  { "model": "name", "role": "title" },
+                  { "model": "language", "enum": ["chinese", "english"] },
+                  { "model": "style",    "enum": ["technical_analysis"] },
+                  { "model": "ref_type", "enum": ["youtube", "medium"] }
+                ],
+                "actions": [
+                  {
+                    "icon": "settings",
+                    "action": "openModal",
+                    "modal": {
+                      "title": "Configure Time Horizons",
+                      "fields": [
+                        {
+                          "model": "long_term",
+                          "type": "slider",
+                          "range": { "min": 1, "max": 365 },
+                          "unitField": "long_term_unit",
+                          "unitEnum": ["day", "week", "month", "quarter", "year"]
+                        },
+                        {
+                          "model": "mid_term",
+                          "type": "slider",
+                          "range": { "min": 1, "max": 365 },
+                          "unitField": "mid_term_unit",
+                          "unitEnum": ["day", "week", "month", "quarter", "year"]
+                        },
+                        {
+                          "model": "short_term",
+                          "type": "slider",
+                          "range": { "min": 1, "max": 365 },
+                          "unitField": "short_term_unit",
+                          "unitEnum": ["day", "week", "month", "quarter", "year"]
+                        },
+                        {
+                          "model": "ultra_short_term",
+                          "type": "slider",
+                          "range": { "min": 1, "max": 365 },
+                          "unitField": "ultra_short_term_unit",
+                          "unitEnum": ["day", "week", "month", "quarter", "year"]
+                        }
+                      ],
+                      "actions": [
+                        { "text": "Save", "action": "saveAuthorConfig" },
+                        { "text": "Cancel", "action": "closeModal" }
+                      ]
                     }
-                  ]
-                }
-              }
-            ]
-          },
-          "dataSource": "authors"
-        }
-      ]
-    },
+                  }
+                ]
+              },
+              "dataSource": "authors"
+            }
+          ]
+        },
 
-    /* Column 2 : assets (derived list, card style compact) */
-    {
-      "id": "assetsColumn",
-      "area": "leftPaneGrid",
-      "type": "container",
-      "header": "Assets",
-      "components": [
+        /* assets column (second frame) */
         {
-          "id": "assetList",
-          "type": "list",
-          "selection": { "mode": "multiple", "bind": "selectedAssets" },
-          "item": {
-            "type": "card",
-            "style": "compact",
-            "model": "value"            /* asset name string */
-          },
-          "dataSource": "assetsForSelected"
+          "type": "container",
+          "header": "Assets",
+          "components": [
+            {
+              "id": "assetList",
+              "type": "list",
+              "orientation": "vertical",
+              "selection": { "mode": "multiple", "bind": "selectedAssets" },
+              "item": {
+                "type": "card",
+                "style": "compact",
+                "model": "value"
+              },
+              "dataSource": "assetsForSelected"
+            }
+          ]
         }
+
+        /* additional columns may be appended dynamically */
       ]
     },
 
-    /* Process button in left pane bottom */
+    /* process button at bottom of left pane */
     {
-      "id": "processBtn",
       "area": "leftPane",
       "type": "button",
       "position": "bottom",
@@ -146,52 +139,37 @@
       "action": "processSelection"
     },
 
-    /* ---------- MAIN‑PANE ---------- */
+    /* ---------- MAIN PANE ---------- */
     {
-      "id": "mainPaneLayout",
       "area": "mainPane",
       "type": "layout",
-      "layout": { "type": "stack", "direction": "vertical" }
-    },
-
-    /* Analysis‑type multi‑select */
-    {
-      "id": "analysisTypeSelector",
-      "area": "mainPane",
-      "type": "multiSelect",
-      "header": "Show Analysis Types",
-      "selection": { "bind": "selectedAnalysisTypes" },
-      "options": [
-        "key_levels",
-        "indicators",
-        "volume_analysis",
-        "market_sentiment",
-        "risk_warnings",
-        "correlation_analysis",
-        "strategy_suggestions"
-      ]
-    },
-
-    /* Content display */
-    {
-      "id": "contentPanel",
-      "area": "mainPane",
-      "type": "panel",
-      "header": "Content Display",
-      "emptyState": {
-        "type": "text",
-        "value": "Select authors from the left panel to view their content",
-        "visible": "{{selectedAuthors.length === 0}}"
-      },
-      "body": {
-        "type": "dynamicContent",
-        "dataSource": "authorContent",
-        "visible": "{{selectedAuthors.length > 0}}",
-        "filter": {
-          "analysisTypes": "{{selectedAnalysisTypes}}",
-          "assets": "{{selectedAssets}}"
+      "layout": { "type": "stack", "direction": "vertical" },
+      "components": [
+        {
+          "id": "analysisTypeSelector",
+          "type": "multiSelect",
+          "header": "Show Analysis Types",
+          "selection": { "bind": "selectedAnalysisTypes" },
+          "options": [
+            "key_levels",
+            "indicators",
+            "volume_analysis",
+            "market_sentiment",
+            "risk_warnings",
+            "correlation_analysis",
+            "strategy_suggestions"
+          ]
+        },
+        {
+          "type": "dynamicContent",
+          "dataSource": "authorContent",
+          "visible": "{{selectedAuthors.length > 0}}",
+          "filter": {
+            "analysisTypes": "{{selectedAnalysisTypes}}",
+            "assets": "{{selectedAssets}}"
+          }
         }
-      }
+      ]
     }
   ]
 }
