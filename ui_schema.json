@@ -3,45 +3,119 @@
     "type": "split",
     "direction": "horizontal",
     "areas": [
-      { "name": "sidebar", "width": "280px" },
-      { "name": "main",    "flex": 1 }
+      { "name": "leftPane", "width": "560px" },
+      { "name": "mainPane", "flex": 1 }
     ]
   },
 
   "components": [
+    /* ---------- LEFT‑PANE (dynamic multi‑column) ---------- */
+    {
+      "id": "leftPaneLayout",
+      "area": "leftPane",
+      "type": "layout",
+      "layout": {
+        "type": "split",
+        "direction": "horizontal",
+        "areas": [
+          { "name": "authorsCol", "width": "280px" },
+          { "name": "assetsCol",  "width": "280px" }
+        ]
+      }
+    },
+
+    /* Authors column */
     {
       "id": "authorList",
-      "area": "sidebar",
+      "area": "authorsCol",
       "type": "list",
+      "header": "Authors",
       "selection": { "mode": "multiple", "bind": "selectedAuthors" },
       "item": {
         "type": "card",
         "fields": [
-          { "model": "name",         "role": "title" },
-          { "label": "Frequency",    "model": "frequency" },
-          { "label": "Format",       "model": "format" },
-          { "label": "Auto‑publish", "model": "autoPublish" }
+          { "model": "name",       "role": "title" },
+          { "label": "Language",   "model": "language", "options": ["chinese", "english"] },
+          { "label": "Style",      "model": "style",    "options": ["technical analysis"] },
+          { "label": "Ref Type",   "model": "ref_type", "options": ["youtube", "medium"] },
+          { "label": "Frequency",  "model": "frequency" },
+          { "label": "Format",     "model": "format"   },
+          { "label": "Auto‑publish","model": "autoPublish" }
         ],
         "actions": [
-          { "icon": "settings", "action": "openAuthorSettings" }
+          {
+            "icon": "settings",
+            "action": "openConfigDialog",
+            "payload": [
+              "Definition of long term",
+              "Definition of short term"
+            ]
+          }
         ]
       },
       "dataSource": "authors"
     },
 
+    /* Assets column – depends on selected authors */
     {
-      "id": "processBtn",
-      "area": "sidebar",
-      "type": "button",
-      "label": "Process Selected",
-      "text": "Process Selected ({{selectedAuthors.length}})",
-      "disabled": "{{selectedAuthors.length === 0}}",
-      "action": "processSelectedAuthors"
+      "id": "assetList",
+      "area": "assetsCol",
+      "type": "list",
+      "header": "Assets",
+      "selection": { "mode": "multiple", "bind": "selectedAssets" },
+      "item": {
+        "type": "badge",
+        "model": "assetName"
+      },
+      "dataSource": {
+        "expression": "{{authors | filter(author => selectedAuthors.includes(author.id)) | flatMap('assets')}}"
+      }
     },
 
+    /* Process button spanning under the author/asset columns */
+    {
+      "id": "processBtn",
+      "area": "leftPane",
+      "type": "button",
+      "position": "bottom",
+      "label": "Process Selected ({{selectedAuthors.length}})",
+      "disabled": "{{selectedAuthors.length === 0}}",
+      "action": "processSelection"
+    },
+
+    /* ---------- MAIN‑PANE ---------- */
+    {
+      "id": "mainPaneLayout",
+      "area": "mainPane",
+      "type": "layout",
+      "layout": {
+        "type": "stack",
+        "direction": "vertical"
+      }
+    },
+
+    /* Analysis‑type multi‑select */
+    {
+      "id": "analysisTypeSelector",
+      "area": "mainPane",
+      "type": "multiSelect",
+      "header": "Show Analysis Types",
+      "selection": { "bind": "selectedAnalysisTypes" },
+      "options": [
+        { "value": "key_levels",          "label": "Key Levels" },
+        { "value": "indicators",          "label": "Indicators" },
+        { "value": "volume_analysis",     "label": "Volume Analysis" },
+        { "value": "market_sentiment",    "label": "Market Sentiment" },
+        { "value": "risk_warnings",       "label": "Risk Warnings" },
+        { "value": "correlation_analysis","label": "Correlation Analysis" },
+        { "value": "strategy_suggestions","label": "Strategy Suggestions" }
+      ]
+    },
+
+    /* Content display panel */
     {
       "id": "contentPanel",
-      "area": "main",
+      "area": "mainPane",
       "type": "panel",
       "header": "Content Display",
       "emptyState": {
@@ -52,13 +126,26 @@
       "body": {
         "type": "dynamicContent",
         "dataSource": "authorContent",
-        "visible": "{{selectedAuthors.length > 0}}"
+        "visible": "{{selectedAuthors.length > 0}}",
+        "filter": {
+          "analysisTypes": "{{selectedAnalysisTypes}}",
+          "assets": "{{selectedAssets}}"
+        }
       }
     }
   ],
 
   "dataSources": {
-    "authors":        { "endpoint": "/api/authors" },
-    "authorContent":  { "endpoint": "/api/authors/content", "params": { "ids": "{{selectedAuthors}}" } }
+    "authors": {
+      "endpoint": "/api/authors"
+    },
+    "authorContent": {
+      "endpoint": "/api/authors/content",
+      "params": {
+        "authorIds": "{{selectedAuthors}}",
+        "assets":    "{{selectedAssets}}",
+        "analysisTypes": "{{selectedAnalysisTypes}}"
+      }
+    }
   }
 }
