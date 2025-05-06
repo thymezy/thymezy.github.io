@@ -6,14 +6,14 @@
       {
         "name": "leftPane",
         "minWidth": "240px",
-        "resizable": true        /* user can drag to resize */
+        "resizable": true
       },
       { "name": "mainPane", "flex": 1 }
     ]
   },
 
   "dataSources": {
-    "indexPayload": { "endpoint": "/prod/index" },
+    "indexPayload": { "endpoint": "/prod/index", "method": "GET" },
     "authors":      { "expression": "{{ Object.keys(indexPayload) }}" },
     "authorMeta":   { "expression": "{{ indexPayload }}" },
     "assetsForSelected": {
@@ -30,14 +30,13 @@
   },
 
   "components": [
-    /* ---------- LEFT PANE : horizontal carousel of columns ---------- */
     {
       "area": "leftPane",
       "type": "carousel",
       "direction": "horizontal",
+      "scrollable": true,
       "autoScroll": false,
       "components": [
-        /* authors column (first frame) */
         {
           "type": "container",
           "header": "Authors",
@@ -104,8 +103,6 @@
             }
           ]
         },
-
-        /* assets column (second frame) */
         {
           "type": "container",
           "header": "Assets",
@@ -115,31 +112,32 @@
               "type": "list",
               "orientation": "vertical",
               "selection": { "mode": "multiple", "bind": "selectedAssets" },
-              "item": {
-                "type": "card",
-                "style": "compact",
-                "model": "value"
-              },
+              "item": { "type": "card", "style": "compact", "model": "value" },
               "dataSource": "assetsForSelected"
             }
           ]
         }
-
-        /* additional columns may be appended dynamically */
       ]
     },
 
-    /* process button at bottom of left pane */
     {
       "area": "leftPane",
       "type": "button",
       "position": "bottom",
-      "text": "Process Selected ({{selectedAuthors.length}})",
+      "text": "Proceed ({{selectedAuthors.length}})",
       "disabled": "{{selectedAuthors.length === 0}}",
-      "action": "processSelection"
+      "action": {
+        "type": "httpRequest",
+        "endpoint": "/prod/query",
+        "method": "POST",
+        "body": {
+          "authorIds": "{{ selectedAuthors }}",
+          "assets": "{{ selectedAssets }}",
+          "analysisTypes": "{{ selectedAnalysisTypes }}"
+        }
+      }
     },
 
-    /* ---------- MAIN PANE ---------- */
     {
       "area": "mainPane",
       "type": "layout",
