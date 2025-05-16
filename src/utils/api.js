@@ -25,6 +25,8 @@ export const fetchContent = async (selected, selectedSecondary, selectedAnalysis
 export const fetchIndex = async () => {
   try {
     const response = await fetch(`${BASE_URL}/prod/index`);
+      console.log(response)
+
     return await response.json();
   } catch (error) {
     console.error('Error fetching index:', error);

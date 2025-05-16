@@ -1,28 +1,17 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-# abort on errors
 set -e
-
-# build
 npm run build
-
-# navigate into the build output directory
 cd dist
-
-# create a .nojekyll file to bypass GitHub Pages' default behavior
 touch .nojekyll
-
-# if you are deploying to a custom domain
-# echo 'www.example.com' > CNAME
-
-git init
+if [ ! -d .git ]; then
+  git init
+fi
+if ! git remote | grep -q 'deploy'; then
+  git remote add deploy git@github.com:thymezy/thymezy.github.io.git
+fi
 git add -A
-git commit -m 'deploy'
-
-# if you are deploying to https://<USERNAME>.github.io
-# git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git main
-
-# if you are deploying to https://<USERNAME>.github.io/<REPO>
-git push -f git@github.com:thymezy/thymezy.github.io.git main:gh-pages
-
-cd -
+git commit -m "Deploy to GitHub Pages"
+git push deploy main:gh-pages --force
+# git push -f git@github.com:thymezy/thymezy.github.io.git main:gh-pages
+echo "Successfully deployed to GitHub Pages"
