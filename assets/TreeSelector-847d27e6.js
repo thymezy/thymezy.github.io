@@ -1,0 +1,1 @@
+import{af as o,ag as c,j as r,aZ as l}from"./index-72b76080.js";const n=({vars:e})=>{const t=o(),a=c(e.computedAvailableSelector);return r.jsx(l,{items:a,onSelectedChange:s=>t(e.setterAction(s))})};export{n as default};
